@@ -86,6 +86,19 @@ dialog{border-radius:6px;border-top:3px solid var(--gold)}
 .yrs{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 14px}.yrs .btn{font-family:var(--hf);letter-spacing:.06em;padding:5px 16px}.yrs .btn.on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
 .acts{align-items:center;flex-wrap:wrap}.cq{flex:1;min-width:200px;font:14px system-ui,sans-serif;color:var(--dg)}
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ac);color:var(--acx);padding:10px 16px;border-radius:6px;font:14px system-ui,sans-serif;z-index:9999;max-width:90vw;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.dcols{display:flex;gap:16px;align-items:flex-start}.dleft{flex:1;min-width:0}
+.epv{display:none;flex:0 0 300px;position:sticky;top:0;border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:var(--surf)}
+dialog.wide{width:min(980px,96vw)}dialog.wide .epv{display:block}
+.epv .vh{cursor:default}.epv .vx,.epv .vs{display:none}
+.vis{position:fixed;right:16px;bottom:16px;width:340px;min-width:240px;max-width:calc(100vw - 24px);background:var(--surf);border:1px solid var(--bd);border-top:3px solid var(--gold);border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.28);z-index:50;resize:both;overflow:auto}
+.vh{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--ac);color:var(--acx);font:13px system-ui,sans-serif;cursor:move;user-select:none;touch-action:none}
+.vh .vt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vx{border:0;background:none;color:inherit;font-size:20px;line-height:1;cursor:pointer;padding:0 2px}
+.vm{position:relative;background:#0b1d24}
+.vi{display:block;width:100%;max-height:62vh;object-fit:contain;cursor:zoom-in}
+.vb{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:44px;border:0;background:rgba(0,0,0,.45);color:#fff;font-size:22px;cursor:pointer}.vp{left:0}.vn{right:0}
+.vs{display:flex;gap:4px;overflow-x:auto;padding:6px}.vs img{height:46px;border-radius:3px;border:2px solid transparent;cursor:pointer;opacity:.7}.vs img.on{border-color:var(--gold);opacity:1}
+@media (max-width:760px){.dcols{flex-direction:column}.epv{flex:none;width:100%;position:static}}
 </style>
 <script id="jszip">/*!
 
@@ -134,7 +147,7 @@ Las entradas se guardan en este navegador y este equipo. Hacé una copia de segu
 </div>
 
 <dialog id="dlg">
-<h2 id="dt" style="margin:0 0 4px;font-size:20px">Nueva entrada</h2>
+<h2 id="dt" style="margin:0 0 4px;font-size:20px">Nueva entrada</h2><div class="dcols"><div class="dleft">
 <div class="row"><div><label>Fecha</label><input type="date" id="f"></div>
 <div><label>Categoría</label><select id="c"></select></div></div>
 <label>Objetivo relacionado (opcional)</label><select id="eo"></select>
@@ -145,6 +158,7 @@ Las entradas se guardan en este navegador y este equipo. Hacé una copia de segu
 <label>Descripción</label><textarea id="x" placeholder="Qué se hizo, quiénes participaron, resultados…"></textarea>
 <label>Fotos</label><input type="file" id="ph" accept="image/*" multiple>
 <div class="thumbs" id="th"></div>
+</div><div class="epv" id="epv"></div></div>
 <div class="foot"><button class="btn" id="cx">Cancelar</button><button class="btn p" id="gd">Guardar</button></div>
 </dialog>
 <dialog id="dobj"><h2 id="dot" style="margin:0 0 4px;font-size:20px">Nuevo objetivo</h2>
@@ -153,6 +167,7 @@ Las entradas se guardan en este navegador y este equipo. Hacé una copia de segu
 <label>Descripción (opcional)</label><textarea id="ox" style="min-height:70px"></textarea>
 <label>Metas (una por línea)</label><textarea id="om" style="min-height:110px" placeholder="Participar en 6 ferias de promoción&#10;Renovar el taller de grabado"></textarea>
 <div class="foot"><button class="btn" id="ocx">Cancelar</button><button class="btn p" id="ogd">Guardar</button></div></dialog>
+<div id="vis" class="vis" style="display:none"></div>
 <dialog id="gal"><div class="foot" style="justify-content:space-between;align-items:center;margin:0 0 10px"><b id="gt"></b><button class="btn" id="gcl">Cerrar</button></div><div class="gg" id="gg"></div></dialog>
 <dialog id="big"><img id="bi" alt=""></dialog>
 
@@ -207,15 +222,15 @@ function abrir(id){
  $("dt").textContent=e?"Editar entrada":"Nueva entrada";
  $("f").value=e?e.fecha:defFecha();
  $("c").innerHTML=CATS.concat(e&&!CATS.includes(e.cat)?[e.cat]:[]).map(c=>`<option>${esc(c)}</option>`).join("");$("c").value=e?e.cat:CATS[0];$("t").value=e?e.titulo:"";$("x").value=e?e.texto:"";$("eo").innerHTML='<option value="">—</option>'+O.map(o=>`<option value="${o.id}">${esc(o.titulo)} (${o.anio})</option>`).join("");$("eo").value=e&&e.obj?e.obj:"";MS.tg.set(e&&e.tags||[]);MS.pe.set(e&&e.personas||[]);
- fotos=e?[...e.fotos]:[];$("ph").value="";miniaturas();$("dlg").showModal();
+ fotos=e?[...e.fotos]:[];evi=0;$("ph").value="";miniaturas();$("dlg").showModal();
 }
 function miniaturas(){
- $("th").innerHTML=fotos.map((s,i)=>`<div><img src="${s}" alt=""><button data-rm="${i}" title="Quitar">×</button></div>`).join("");
+ $("th").innerHTML=fotos.map((s,i)=>`<div><img src="${s}" data-v="${i}" alt="" style="cursor:pointer"><button data-rm="${i}" title="Quitar">×</button></div>`).join("");evSync();
 }
 $("nuevo").onclick=()=>abrir(null);
 $("cx").onclick=()=>$("dlg").close();
-$("ph").onchange=async ev=>{for(const f of ev.target.files){const d=await reducir(f);if(d)fotos.push(d)}ev.target.value="";miniaturas()};
-$("th").onclick=ev=>{const i=ev.target.dataset.rm;if(i!==undefined){fotos.splice(+i,1);miniaturas()}};
+$("ph").onchange=async ev=>{for(const f of ev.target.files){const d=await reducir(f);if(d)fotos.push(d)}ev.target.value="";evi=Math.max(0,fotos.length-1);miniaturas()};
+$("th").onclick=ev=>{const i=ev.target.dataset.rm;if(i!==undefined){fotos.splice(+i,1);miniaturas()}else if(ev.target.dataset.v!==undefined){evi=+ev.target.dataset.v;EV.show(fotos,evi,"Vista previa")}};
 $("gd").onclick=async()=>{
  if(!$("f").value){aviso("Elegí una fecha.");return}
  if(!$("t").value.trim()&&!$("x").value.trim()){aviso("Escribí un título o una descripción.");return}
@@ -229,7 +244,7 @@ $("lista").onclick=async ev=>{
  else if(t.dataset.del){CONFE=t.dataset.del;pintar()}
  else if(t.dataset.yesdel){const id=t.dataset.yesdel;E=E.filter(x=>x.id!==id);CONFE=null;await borrar(id);pintar();pintarY()}
  else if(t.dataset.nodel){CONFE=null;pintar()}
- else if(t.dataset.ph){const e=E.find(x=>x.id===t.dataset.ph);if(e){$("gt").textContent=e.titulo||"Fotos";$("gg").innerHTML=e.fotos.map((s,i)=>`<img src="${s}" alt="Foto ${i+1}">`).join("");$("gal").showModal()}}
+ else if(t.dataset.ph){const e=E.find(x=>x.id===t.dataset.ph);if(e){VIS.show(e.fotos,0,e.titulo||"Fotos");$("vis").style.display="block"}}
  else if(t.dataset.pe){$("fper").value=t.dataset.pe;pintar()}
  else if(t.dataset.tg){$("ftag").value=t.dataset.tg;pintar()}
  else if(t.tagName==="IMG"){$("bi").src=t.src;$("big").showModal()}
@@ -386,6 +401,42 @@ $("cfg").onkeydown=ev=>{
  if(id.startsWith("new-"))$("cfg").querySelector('[data-add="'+id.slice(4)+'"]').click();
  else if((m=id.match(/^cf-(\w+)-(\d+)$/)))$("cfg").querySelector('[data-sv="'+m[1]+'"][data-i="'+m[2]+'"]').click();
 };
+function makeViewer(root,onClose){
+ root.innerHTML='<div class="vh"><b class="vt"></b><span class="vc"></span><button type="button" class="vx" title="Cerrar">×</button></div><div class="vm"><button type="button" class="vb vp" title="Anterior">‹</button><img class="vi" alt="Foto" title="Tocá para ampliar"><button type="button" class="vb vn" title="Siguiente">›</button></div><div class="vs"></div>';
+ const t=root.querySelector(".vt"),c=root.querySelector(".vc"),im=root.querySelector(".vi"),vs=root.querySelector(".vs"),vp=root.querySelector(".vp"),vn=root.querySelector(".vn");
+ let F=[],i=0;
+ function draw(){
+  if(!F.length){im.removeAttribute("src");c.textContent="";vs.innerHTML="";return}
+  i=(i+F.length)%F.length;im.src=F[i];c.textContent=(i+1)+" / "+F.length;
+  vp.style.visibility=vn.style.visibility=F.length>1?"visible":"hidden";
+  vs.innerHTML=F.map((s,k)=>'<img src="'+s+'" data-k="'+k+'" class="'+(k===i?"on":"")+'" alt="">').join("");
+ }
+ root.addEventListener("click",ev=>{
+  const x=ev.target;
+  if(x.closest(".vx")){if(onClose)onClose();return}
+  if(x.closest(".vp")){i--;draw();return}
+  if(x.closest(".vn")){i++;draw();return}
+  if(x===im){$("bi").src=im.src;$("big").showModal();return}
+  const k=x.dataset?x.dataset.k:undefined;if(k!==undefined&&k!==""){i=+k;draw()}
+ });
+ root.tabIndex=0;
+ root.addEventListener("keydown",ev=>{if(ev.key==="ArrowLeft"){i--;draw()}else if(ev.key==="ArrowRight"){i++;draw()}});
+ return{show(f,idx,title){F=f;i=idx||0;t.textContent=title||"";draw()},idx(){return i}};
+}
+const VIS=makeViewer($("vis"),()=>{$("vis").style.display="none"});
+const EV=makeViewer($("epv"));
+let evi=0;
+function evSync(){
+ $("dlg").classList.toggle("wide",fotos.length>0);
+ if(evi>=fotos.length)evi=Math.max(0,fotos.length-1);
+ EV.show(fotos,evi,"Vista previa");
+}
+(function(){
+ const p=$("vis"),h=p.querySelector(".vh");let sx,sy,ox,oy,dr=false;
+ h.addEventListener("pointerdown",ev=>{if(ev.target.closest("button"))return;dr=true;const r=p.getBoundingClientRect();ox=r.left;oy=r.top;sx=ev.clientX;sy=ev.clientY;p.style.left=ox+"px";p.style.top=oy+"px";p.style.right="auto";p.style.bottom="auto";try{h.setPointerCapture(ev.pointerId)}catch(e){}});
+ h.addEventListener("pointermove",ev=>{if(!dr)return;p.style.left=Math.max(0,Math.min(innerWidth-80,ox+ev.clientX-sx))+"px";p.style.top=Math.max(0,Math.min(innerHeight-40,oy+ev.clientY-sy))+"px"});
+ h.addEventListener("pointerup",()=>{dr=false});
+})();
 function descargar(nombre,data){const b=data instanceof Blob?data:new Blob([data],{type:/\.json$/.test(nombre)?"application/json":"text/html"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=nombre;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
 async function guardarArchivo(nombre,data){
  let d=null;try{d=await claude.use("downloads")}catch(e){}
